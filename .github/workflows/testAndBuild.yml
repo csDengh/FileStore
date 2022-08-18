@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.17
+    
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v3
+
+    - name: Docker Login
+      uses: docker/login-action@v1.10.0
+      with:
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.PASSWORD }}
+        logout: true
+
+    - name: build image
+      run: |
+        docker build -t ${{ secrets.USERNAME }}/simplebank:${{ github.sha }} -t ${{ secrets.USERNAME }}/simplebank:latest .
+        docker push -a ${{ secrets.USERNAME }}/simplebank
+      
+    - name: Trigger CI
+      uses: InformaticsMatters/trigger-ci-action@1.0.1
+      with:
+        ci-owner: csDengh
+        ci-repository: samplebankCD
+        ci-ref: refs/heads/main
+        ci-user: csDengh
+        ci-user-token: ${{ secrets.CI_TOKEN }}
+        ci-name: CD
+        ci-inputs: >-
+          image=${{ secrets.USERNAME }}/simplebank
+          sha-tag=${{ github.sha }}
+
+  
+  
