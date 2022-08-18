@@ -30,8 +30,8 @@ jobs:
 
     - name: build image
       run: |
-        docker build -t ${{ secrets.USERNAME }}/fileStore:${{ github.sha }} -t ${{ secrets.USERNAME }}/fileStore:latest .
-        docker push -a ${{ secrets.USERNAME }}/fileStore
+        docker build -t ${{ secrets.USERNAME }}/filestore:${{ github.sha }} -t ${{ secrets.USERNAME }}/filestore:latest .
+        docker push -a ${{ secrets.USERNAME }}/filestore
       
     - name: Trigger CI
       uses: InformaticsMatters/trigger-ci-action@1.0.1
