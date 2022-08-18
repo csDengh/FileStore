@@ -1,2 +1,2 @@
 # FileStore  
-cicd
+ci
