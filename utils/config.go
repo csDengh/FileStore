@@ -26,6 +26,8 @@ type Config struct {
 	TransOSSQueueName    string        `mapstructure:"TRANSOSSQUEUENAME"`
 	TransOSSErrQueueName string        `mapstructure:"TRANSOSSERRQUEUENAME"`
 	TransOSSroutingKey   string        `mapstructure:"TRANSOSSROUTINGKEY"`
+	RedisHost            string        `mapstructure:"REDISHOST"`
+	RedisPass            string        `mapstructure:"REDISPASS"`
 }
 
 func GetConfig(path string) (*Config, error) {

@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: filestore
+spec:
+  selector:
+    matchLabels:
+      prod: redis
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        prod: redis
+    spec:
+      containers:
+      - name: redis
+        ports:
+        - containerPort: 6379
+        image: redis
+        imagePullPolicy: IfNotPresent
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: filestore
+spec:
+  type: NodePort
+  ports:
+    - port: 6379     # 容器端口
+      targetPort: 3306
+      protocol: TCP
+  selector:
+    prod: redis

@@ -16,8 +16,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/gomodule/redigo/redis"
-
-	rPool "github.com/csdengh/fileStore/cache/redis"
 )
 
 // MultipartUploadInfo : 初始化信息
@@ -50,7 +48,7 @@ func (s *Server) InitialMultipartUploadHandler(ctx *gin.Context) {
 		ChunkCount: int(math.Ceil(float64(req.Filesize) / (5 * 1024 * 1024))),
 	}
 
-	rConn := rPool.RedisPool().Get()
+	rConn := s.rdpool.Get()
 	defer rConn.Close()
 
 	rConn.Do("HSET", "MP_"+upInfo.UploadID, "chunkcount", upInfo.ChunkCount)
@@ -73,7 +71,7 @@ func (s *Server) UploadPartHandler(ctx *gin.Context) {
 		return
 	}
 
-	rConn := rPool.RedisPool().Get()
+	rConn := s.rdpool.Get()
 	defer rConn.Close()
 
 	fpath := "/data/" + req.Uploadid + "/" + req.Index
@@ -115,7 +113,7 @@ func (s *Server) CompleteUploadHandler(ctx *gin.Context) {
 		return
 	}
 
-	rConn := rPool.RedisPool().Get()
+	rConn := s.rdpool.Get()
 	defer rConn.Close()
 
 	data, err := redis.Values(rConn.Do("HGETALL", "MP_"+req.Uploadid))

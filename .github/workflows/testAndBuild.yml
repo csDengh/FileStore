@@ -30,20 +30,20 @@ jobs:
 
     - name: build image
       run: |
-        docker build -t ${{ secrets.USERNAME }}/simplebank:${{ github.sha }} -t ${{ secrets.USERNAME }}/simplebank:latest .
-        docker push -a ${{ secrets.USERNAME }}/simplebank
+        docker build -t ${{ secrets.USERNAME }}/fileStore:${{ github.sha }} -t ${{ secrets.USERNAME }}/fileStore:latest .
+        docker push -a ${{ secrets.USERNAME }}/fileStore
       
     - name: Trigger CI
       uses: InformaticsMatters/trigger-ci-action@1.0.1
       with:
         ci-owner: csDengh
-        ci-repository: samplebankCD
+        ci-repository: fileStoreCD
         ci-ref: refs/heads/main
         ci-user: csDengh
         ci-user-token: ${{ secrets.CI_TOKEN }}
         ci-name: CD
         ci-inputs: >-
-          image=${{ secrets.USERNAME }}/simplebank
+          image=${{ secrets.USERNAME }}/fileStore
           sha-tag=${{ github.sha }}
 
   

@@ -41,7 +41,7 @@ func restServer(store *db.Queries, cfg *utils.Config) {
 		log.Fatalln(err)
 	}
 
-	addr := ":9199"
+	addr := ":80"
 	err = s.Start(addr)
 	if err != nil {
 		log.Fatalln(err)

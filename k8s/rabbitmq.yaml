@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: rabbitmq
+  name: rabbitmq
+  namespace: filestore
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      containers:
+        - env:
+            - name: RABBITMQ_DEFAULT_USER
+              value: guest
+            - name: RABBITMQ_DEFAULT_PASS
+              value: guest
+          image: 'rabbitmq:management'
+          imagePullPolicy: IfNotPresent
+          name: rabbitmq
+          volumeMounts:
+            - mountPath: /var/lib/rabbitmq/
+              name: data
+      volumes:
+        - name: data
+          hostPath:
+            path: /root/k8s/moonfdd/rabbitmq/var/lib/rabbitmq/
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: rabbitmq
+  name: rabbitmq
+  namespace: filestore
+spec:
+  ports:
+    - name: 5672-5672
+      port: 5672
+      protocol: TCP
+      targetPort: 5672
+    - name: 15672-15672
+      port: 15672
+      protocol: TCP
+      targetPort: 15672
+  selector:
+    app: rabbitmq
+  type: NodePort

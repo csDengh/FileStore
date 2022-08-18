@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: filestore
+  labels:
+    app: filestore
+  namespace: filestore
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: filestore
+  template:
+    metadata:
+      labels:
+        app: filestore
+    spec:
+      containers:
+      - name: filestore
+        image: csdengh/filestore:latest
+        ports:
+        - containerPort: 80
+        env:
+          - name: DB_SOURCE
+            value: root:root@tcp(mysql)/fileserver?charset=utf8&parseTime=true
+          - name: OSSACCESSKEYID
+            valueFrom:
+              secretKeyRef:
+                name: osssecret
+                key: OSSACCESSKEYID
+          - name: OSSACCESSKEYSECRET
+            valueFrom:
+              secretKeyRef:
+                name: osssecret
+                key: OSSACCESSKEYSECRET
+          - name: RABBITURL
+            value: amqp://guest:guest@rabbitmq:5672/
+          - name: REDISHOST
+            value: redis:6379        
+          - name: REDISPASS
+            value: testupload         
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: filestore
+  namespace: filestore
+spec:
+  type: NodePort
+  selector:
+    app: filestore
+  ports:
+    - name: filestore-rest
+      protocol: TCP
+      port: 80
+      nodePort: 32346
+      targetPort: 80
+

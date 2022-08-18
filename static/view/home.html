@@ -109,7 +109,7 @@
           return;
         }
 
-        var dlHost = 'http://192.168.66.16:9199';
+        var dlHost = 'http://192.168.66.16:32346';
         var dlEntry = localStorage.getItem('downloadEntry');
         if (dlEntry != '') {
           if (dlEntry.indexOf('http:')<0) {
@@ -150,7 +150,7 @@
           cell = x.insertCell();
           cell.innerHTML = '<button class="btn btn-success" ' +
             'style="height:30px;margin:5px 0;"' +
-            'onClick = "downloadFile(\'http://192.168.66.16:9199/file/' +
+            'onClick = "downloadFile(\'http://192.168.66.16:32346/file/' +
             'downloadurl?filehash=' + data[i].FileHash + '&' + queryParams() + '\')">下载</button>';
             //  + cdlFileHtml
             // .format(data[i].FileHash, queryParams()) +

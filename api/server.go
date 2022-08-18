@@ -1,7 +1,9 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/csdengh/fileStore/ceph"
 	db "github.com/csdengh/fileStore/db/sqlc"
@@ -9,6 +11,7 @@ import (
 	"github.com/csdengh/fileStore/token"
 	"github.com/csdengh/fileStore/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/gomodule/redigo/redis"
 )
 
 var (
@@ -22,6 +25,7 @@ type Server struct {
 	config     *utils.Config
 	ceph       *ceph.Oss
 	mq         *mq.Mq
+	rdpool     *redis.Pool
 }
 
 func NewServer(store_ *db.Queries, cfg *utils.Config) (*Server, error) {
@@ -34,7 +38,8 @@ func NewServer(store_ *db.Queries, cfg *utils.Config) (*Server, error) {
 		tokenMaker: pm,
 		config:     cfg,
 		ceph:       ceph.NewOss(cfg.OSSEndpoint, cfg.OSSAccesskeyID, cfg.OSSAccessKeySecret, cfg.OSSBucket),
-		mq: mq.NewMq(cfg.RabbitURL),
+		mq:         mq.NewMq(cfg.RabbitURL),
+		rdpool:     NewRedisPool(cfg.RedisHost, cfg.RedisPass),
 	}
 	s.SartRoute()
 	return s, nil
@@ -48,14 +53,12 @@ func (s *Server) SartRoute() {
 	route := gin.Default()
 	route.StaticFS("/static", http.Dir("./static"))
 
-	
 	route.GET("/user/signup", s.GetRegisterPage)
 	route.POST("/user/signup", s.CreateUser)
 	route.GET("/user/signin", s.GetLoginPage)
 	route.POST("/user/signin", s.UserLogin)
 	route.DELETE("/user/:username", s.DeleteUser)
 	route.POST("/user/info", s.GetUser)
-
 
 	rg := route.Group("/", AuthenticateMideware(s.tokenMaker))
 	rg.GET("/file/upload", s.GetIndexPage)
@@ -72,4 +75,35 @@ func (s *Server) SartRoute() {
 	rg.POST("/file/downloadurl", s.DownloadURL)
 
 	s.route = route
+}
+
+func NewRedisPool(redisHost, redisPass string) *redis.Pool {
+	return &redis.Pool{
+		MaxIdle:     50,
+		MaxActive:   30,
+		IdleTimeout: 300 * time.Second,
+		Dial: func() (redis.Conn, error) {
+			// 1. 打开连接
+			c, err := redis.Dial("tcp", redisHost)
+			if err != nil {
+				fmt.Println(err)
+				return nil, err
+			}
+
+			// 2. 访问认证
+			if _, err = c.Do("AUTH", redisPass); err != nil {
+				fmt.Println(err)
+				c.Close()
+				return nil, err
+			}
+			return c, nil
+		},
+		TestOnBorrow: func(conn redis.Conn, t time.Time) error {
+			if time.Since(t) < time.Minute {
+				return nil
+			}
+			_, err := conn.Do("PING")
+			return err
+		},
+	}
 }
